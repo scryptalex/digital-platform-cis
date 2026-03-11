@@ -23,20 +23,22 @@ app.use('/api/events', eventsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), port: PORT });
 });
 
 // Start server
 const startServer = async () => {
   try {
     await initDatabase();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    console.log('Database connected');
   } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+    console.error('Database connection failed:', error);
+    // Continue without database for now
   }
+  
+  app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`Server running on 0.0.0.0:${PORT}`);
+  });
 };
 
 startServer();
