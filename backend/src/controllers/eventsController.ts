@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { pool } from '../config/database';
+import { getPool } from '../config/database';
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
@@ -32,7 +32,7 @@ export const getEvents = async (req: Request, res: Response) => {
 
     query += ' ORDER BY start_date ASC';
 
-    const result = await pool.query(query, params);
+    const result = await getPool().query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Get events error:', error);
@@ -44,7 +44,7 @@ export const getEventById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    const result = await pool.query(
+    const result = await getPool().query(
       `SELECT e.*, u.name as organizer_name, u.organization as organizer_org,
        (SELECT COUNT(*) FROM event_registrations WHERE event_id = e.id) as registered_count
        FROM events e 
@@ -72,7 +72,7 @@ export const createEvent = async (req: Request, res: Response) => {
       location, is_online, online_link, country, max_participants, image_url 
     } = req.body;
 
-    const result = await pool.query(
+    const result = await getPool().query(
       `INSERT INTO events 
        (title, description, event_type, start_date, end_date, location, is_online, online_link, organizer_id, country, max_participants, image_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -98,7 +98,7 @@ export const updateEvent = async (req: Request, res: Response) => {
     } = req.body;
 
     // Check ownership or admin
-    const eventCheck = await pool.query('SELECT organizer_id FROM events WHERE id = $1', [id]);
+    const eventCheck = await getPool().query('SELECT organizer_id FROM events WHERE id = $1', [id]);
     if (eventCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Событие не найдено' });
     }
@@ -106,7 +106,7 @@ export const updateEvent = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Нет прав на редактирование' });
     }
 
-    const result = await pool.query(
+    const result = await getPool().query(
       `UPDATE events SET 
        title = COALESCE($1, title),
        description = COALESCE($2, description),
@@ -139,7 +139,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const userRole = (req as any).userRole;
 
-    const eventCheck = await pool.query('SELECT organizer_id FROM events WHERE id = $1', [id]);
+    const eventCheck = await getPool().query('SELECT organizer_id FROM events WHERE id = $1', [id]);
     if (eventCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Событие не найдено' });
     }
@@ -147,7 +147,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Нет прав на удаление' });
     }
 
-    await pool.query('DELETE FROM events WHERE id = $1', [id]);
+    await getPool().query('DELETE FROM events WHERE id = $1', [id]);
     res.json({ message: 'Событие удалено' });
   } catch (error) {
     console.error('Delete event error:', error);
@@ -161,7 +161,7 @@ export const registerForEvent = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
     // Check if event exists and has capacity
-    const event = await pool.query(
+    const event = await getPool().query(
       `SELECT max_participants, 
        (SELECT COUNT(*) FROM event_registrations WHERE event_id = $1) as registered_count
        FROM events WHERE id = $1`,
@@ -177,7 +177,7 @@ export const registerForEvent = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Все места заняты' });
     }
 
-    const result = await pool.query(
+    const result = await getPool().query(
       `INSERT INTO event_registrations (event_id, user_id) 
        VALUES ($1, $2) 
        ON CONFLICT (event_id, user_id) DO NOTHING
@@ -201,7 +201,7 @@ export const unregisterFromEvent = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req as any).userId;
 
-    const result = await pool.query(
+    const result = await getPool().query(
       'DELETE FROM event_registrations WHERE event_id = $1 AND user_id = $2 RETURNING *',
       [id, userId]
     );
@@ -221,7 +221,7 @@ export const getMyEvents = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 
-    const result = await pool.query(
+    const result = await getPool().query(
       `SELECT e.*, er.registered_at, er.status as registration_status
        FROM events e
        JOIN event_registrations er ON e.id = er.event_id

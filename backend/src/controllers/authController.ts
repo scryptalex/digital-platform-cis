@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { pool } from '../config/database';
+import { getPool } from '../config/database';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'cis-forum-secret-key';
 
@@ -10,7 +10,7 @@ export const register = async (req: Request, res: Response) => {
     const { email, password, name, organization, country } = req.body;
 
     // Check if user exists
-    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const existingUser = await getPool().query('SELECT id FROM users WHERE email = $1', [email]);
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
     }
@@ -19,7 +19,7 @@ export const register = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const result = await pool.query(
+    const result = await getPool().query(
       `INSERT INTO users (email, password, name, organization, country) 
        VALUES ($1, $2, $3, $4, $5) 
        RETURNING id, email, name, role, organization, country`,
@@ -43,7 +43,7 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     // Find user
-    const result = await pool.query(
+    const result = await getPool().query(
       'SELECT id, email, password, name, role, organization, country FROM users WHERE email = $1',
       [email]
     );
@@ -77,7 +77,7 @@ export const getProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
 
-    const result = await pool.query(
+    const result = await getPool().query(
       'SELECT id, email, name, role, organization, country, created_at FROM users WHERE id = $1',
       [userId]
     );

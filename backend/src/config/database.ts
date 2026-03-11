@@ -1,15 +1,23 @@
 import { Pool } from 'pg';
-import dotenv from 'dotenv';
 
-dotenv.config();
+let pool: Pool;
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+export const getPool = () => {
+  if (!pool) {
+    console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+  }
+  return pool;
+};
+
+export { pool };
 
 export const initDatabase = async () => {
-  const client = await pool.connect();
+  const p = getPool();
+  const client = await p.connect();
   try {
     // Users table
     await client.query(`
