@@ -1,7 +1,19 @@
 import axios from 'axios';
 import type { AuthResponse, RegisterData, LoginData, User, Event, EventFilters } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Determine API URL based on environment
+const getApiUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // Production fallback
+  if (window.location.hostname === 'digital-platform-cis.vercel.app') {
+    return 'https://digital-platform-cis-production-a20c.up.railway.app/api';
+  }
+  return 'http://localhost:3001/api';
+};
+
+const API_URL = getApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,
