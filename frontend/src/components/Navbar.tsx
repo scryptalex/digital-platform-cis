@@ -21,7 +21,7 @@ export const Navbar = () => {
         <div className="navbar-links">
           <Link to="/calendar">Календарь</Link>
           <Link to="/discussions">Дискуссии</Link>
-          <Link to="/forum">Бизнес-форум</Link>
+          <Link to="/business">Бизнес-форум</Link>
         </div>
 
         <div className="navbar-auth">

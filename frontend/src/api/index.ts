@@ -89,4 +89,94 @@ export const eventsApi = {
   },
 };
 
+// Discussions types
+export interface Discussion {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  author_id: number;
+  author_name: string;
+  author_org?: string;
+  views_count: number;
+  replies_count: number;
+  is_pinned: boolean;
+  created_at: string;
+  replies?: DiscussionReply[];
+}
+
+export interface DiscussionReply {
+  id: number;
+  discussion_id: number;
+  author_id: number;
+  author_name: string;
+  content: string;
+  created_at: string;
+}
+
+// Business project types
+export interface BusinessProject {
+  id: number;
+  title: string;
+  description: string;
+  sector: string;
+  investment_required: string;
+  investment_currency: string;
+  country: string;
+  contact_email?: string;
+  contact_phone?: string;
+  company_name: string;
+  author_id: number;
+  author_name: string;
+  views_count: number;
+  status: string;
+  created_at: string;
+}
+
+// Discussions API
+export const discussionsApi = {
+  getAll: async (category?: string): Promise<Discussion[]> => {
+    const response = await api.get('/discussions', { params: { category } });
+    return response.data;
+  },
+
+  getById: async (id: number): Promise<Discussion> => {
+    const response = await api.get(`/discussions/${id}`);
+    return response.data;
+  },
+
+  create: async (data: { title: string; content: string; category: string }): Promise<Discussion> => {
+    const response = await api.post('/discussions', data);
+    return response.data;
+  },
+
+  addReply: async (id: number, content: string): Promise<DiscussionReply> => {
+    const response = await api.post(`/discussions/${id}/reply`, { content });
+    return response.data;
+  },
+};
+
+// Business projects API
+export const businessApi = {
+  getAll: async (filters?: { sector?: string; country?: string }): Promise<BusinessProject[]> => {
+    const response = await api.get('/business', { params: filters });
+    return response.data;
+  },
+
+  getById: async (id: number): Promise<BusinessProject> => {
+    const response = await api.get(`/business/${id}`);
+    return response.data;
+  },
+
+  create: async (data: Partial<BusinessProject>): Promise<BusinessProject> => {
+    const response = await api.post('/business', data);
+    return response.data;
+  },
+
+  update: async (id: number, data: Partial<BusinessProject>): Promise<BusinessProject> => {
+    const response = await api.put(`/business/${id}`, data);
+    return response.data;
+  },
+};
+
 export default api;

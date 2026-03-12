@@ -68,6 +68,55 @@ export const initDatabase = async () => {
       )
     `);
 
+    // Discussions table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS discussions (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        author_id INTEGER REFERENCES users(id),
+        views_count INTEGER DEFAULT 0,
+        replies_count INTEGER DEFAULT 0,
+        is_pinned BOOLEAN DEFAULT false,
+        status VARCHAR(50) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Discussion replies
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS discussion_replies (
+        id SERIAL PRIMARY KEY,
+        discussion_id INTEGER REFERENCES discussions(id) ON DELETE CASCADE,
+        author_id INTEGER REFERENCES users(id),
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Business projects table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS business_projects (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        sector VARCHAR(100) NOT NULL,
+        investment_required VARCHAR(100),
+        investment_currency VARCHAR(10) DEFAULT 'USD',
+        country VARCHAR(100) NOT NULL,
+        contact_email VARCHAR(255),
+        contact_phone VARCHAR(50),
+        company_name VARCHAR(255),
+        author_id INTEGER REFERENCES users(id),
+        status VARCHAR(50) DEFAULT 'active',
+        views_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Database initialization error:', error);

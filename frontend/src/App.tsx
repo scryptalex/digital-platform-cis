@@ -4,6 +4,8 @@ import { Navbar } from './components/Navbar';
 import { HomePage } from './pages/Home';
 import { LoginPage, RegisterPage } from './pages/Auth';
 import { CalendarPage } from './pages/Calendar';
+import { DiscussionsPage } from './pages/Discussions';
+import { BusinessForumPage } from './pages/BusinessForum';
 import type { ReactNode } from 'react';
 import './App.css';
 
@@ -24,6 +26,8 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
+      <Route path="/discussions" element={<DiscussionsPage />} />
+      <Route path="/business" element={<BusinessForumPage />} />
       <Route path="/my-events" element={
         <ProtectedRoute>
           <CalendarPage />

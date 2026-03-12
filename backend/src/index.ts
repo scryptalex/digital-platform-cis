@@ -5,6 +5,8 @@ import bcrypt from 'bcryptjs';
 import { initDatabase, getPool } from './config/database';
 import authRoutes from './routes/auth';
 import eventsRoutes from './routes/events';
+import discussionsRoutes from './routes/discussions';
+import businessRoutes from './routes/business';
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
+app.use('/api/discussions', discussionsRoutes);
+app.use('/api/business', businessRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -74,6 +78,50 @@ app.post('/api/seed', async (req, res) => {
          VALUES ($1, $2, $3, $4, $5, $6, $7, 'upcoming')
          ON CONFLICT DO NOTHING`,
         [event.title, event.description, event.start_date, event.end_date, event.location, event.event_type, event.country]
+      );
+    }
+
+    // Create test discussions
+    const testDiscussions = [
+      { title: 'Перспективы цифровой экономики СНГ', content: 'Коллеги, предлагаю обсудить ключевые направления развития цифровой экономики в странах СНГ. Какие технологии считаете приоритетными? Как обеспечить совместимость цифровых систем?', category: 'economy', is_pinned: true },
+      { title: 'Гармонизация таможенного законодательства', content: 'Вопрос унификации таможенных процедур остаётся актуальным. Поделитесь опытом ваших стран в этом направлении.', category: 'legal', is_pinned: false },
+      { title: 'Развитие транспортных коридоров', content: 'Обсуждаем проекты новых транспортных маршрутов и логистических центров. Какие маршруты считаете приоритетными?', category: 'transport', is_pinned: false },
+      { title: 'Энергетическая безопасность региона', content: 'Вопросы энергетической безопасности и совместных проектов в сфере возобновляемой энергетики.', category: 'energy', is_pinned: true },
+      { title: 'Молодёжные программы обмена', content: 'Предлагаю обсудить расширение программ академической мобильности и стажировок для молодых специалистов.', category: 'education', is_pinned: false },
+      { title: 'Агропромышленное сотрудничество', content: 'Обсуждение вопросов продовольственной безопасности и развития агросектора.', category: 'agriculture', is_pinned: false },
+      { title: 'IT-интеграция и кибербезопасность', content: 'Как обеспечить безопасность данных при трансграничном обмене? Делимся опытом.', category: 'technology', is_pinned: false },
+      { title: 'Банковское сотрудничество', content: 'Вопросы межбанковских расчётов и создания единого платёжного пространства.', category: 'finance', is_pinned: false },
+    ];
+
+    for (const disc of testDiscussions) {
+      await pool.query(
+        `INSERT INTO discussions (title, content, category, is_pinned, author_id)
+         VALUES ($1, $2, $3, $4, 1)
+         ON CONFLICT DO NOTHING`,
+        [disc.title, disc.content, disc.category, disc.is_pinned]
+      );
+    }
+
+    // Create test business projects
+    const testProjects = [
+      { title: 'Строительство логистического центра', description: 'Создание современного логистического центра на пересечении ключевых транспортных коридоров. Площадь 50 000 м², склады класса A.', sector: 'logistics', investment_required: '25000000', country: 'Казахстан', company_name: 'ТрансЛогистик Групп' },
+      { title: 'Солнечная электростанция 100 МВт', description: 'Строительство солнечной электростанции в Навоийской области. Государственные гарантии выкупа электроэнергии.', sector: 'energy', investment_required: '80000000', country: 'Узбекистан', company_name: 'Узбекэнерго' },
+      { title: 'IT-парк и технополис', description: 'Создание IT-парка с льготным налогообложением для технологических компаний. 200 резидентов, 5000 рабочих мест.', sector: 'technology', investment_required: '45000000', country: 'Беларусь', company_name: 'БелТехИнвест' },
+      { title: 'Модернизация молочного комбината', description: 'Реконструкция и модернизация молочного комбината. Увеличение мощности до 500 тонн молока в сутки.', sector: 'agriculture', investment_required: '15000000', country: 'Молдова', company_name: 'МолдАгро' },
+      { title: 'Туристический комплекс на Иссык-Куле', description: 'Строительство современного туристического комплекса: отель 4*, SPA, спортивные объекты.', sector: 'tourism', investment_required: '35000000', country: 'Кыргызстан', company_name: 'Иссык-Куль Резортс' },
+      { title: 'Фармацевтический завод', description: 'Строительство завода по производству дженериков. Сертификация GMP, экспорт в страны СНГ.', sector: 'pharma', investment_required: '60000000', country: 'Армения', company_name: 'АрмФарма' },
+      { title: 'Xлопкоперерабатывающий комбинат', description: 'Модернизация хлопкоперерабатывающего производства с выпуском готовой текстильной продукции.', sector: 'manufacturing', investment_required: '40000000', country: 'Таджикистан', company_name: 'ТаджикТекстиль' },
+      { title: 'Центр обработки данных', description: 'Создание регионального дата-центра уровня Tier III. 1000 стоек, облачные сервисы.', sector: 'technology', investment_required: '55000000', country: 'Россия', company_name: 'РосДатаЦентр' },
+      { title: 'Нефтеперерабатывающий мини-завод', description: 'Строительство мини-НПЗ мощностью 500 000 тонн в год. Глубокая переработка нефти.', sector: 'energy', investment_required: '120000000', country: 'Азербайджан', company_name: 'АзерОйл Инвест' },
+      { title: 'Зерновой терминал', description: 'Строительство зернового терминала ёмкостью 200 000 тонн. Экспорт зерна в Китай и Среднюю Азию.', sector: 'agriculture', investment_required: '30000000', country: 'Казахстан', company_name: 'КазЗерноТранзит' },
+    ];
+
+    for (const proj of testProjects) {
+      await pool.query(
+        `INSERT INTO business_projects (title, description, sector, investment_required, country, company_name, author_id)
+         VALUES ($1, $2, $3, $4, $5, $6, 1)
+         ON CONFLICT DO NOTHING`,
+        [proj.title, proj.description, proj.sector, proj.investment_required, proj.country, proj.company_name]
       );
     }
 
